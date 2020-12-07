@@ -3,15 +3,12 @@ package tutorial1
 import akka.actor.typed._
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 
-object HelloWorld extends App {
-}
-
-object Main {
+object EntryPoint {
   def apply(): Behavior[String] =
-    Behaviors.setup(context => new Main(context))
+    Behaviors.setup(context => new EntryPoint(context))
 }
 
-class Main(context: ActorContext[String]) extends AbstractBehavior[String](context) {
+class EntryPoint(context: ActorContext[String]) extends AbstractBehavior[String](context) {
   override def onMessage(msg: String): Behavior[String] =
     msg match {
       case "start" =>
