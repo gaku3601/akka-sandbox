@@ -1,5 +1,5 @@
+import akka.actor.typed._
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
-import akka.actor.typed.{ActorSystem, Behavior, PostStop, Signal}
 
 object HelloWorld extends App {
   val testSystem = ActorSystem(Main(), "testSystem")
@@ -17,8 +17,11 @@ class Main(context: ActorContext[String]) extends AbstractBehavior[String](conte
     msg match {
       case "start" =>
         val firstRef = context.spawn(PrintMyActorRefActor(), "first-actor") // actorを生成する
+        // 子actorで例外が出力された場合、restartする
+        val supervisedRef = context.spawn(Behaviors.supervise(SupervisedActor()).onFailure(SupervisorStrategy.restart), "supervised-actor")
         println(s"First: $firstRef")
         firstRef ! "printit"
+        supervisedRef ! "fails"
         this
       case "stop" => Behaviors.stopped // actorを停止する
     }
@@ -48,6 +51,29 @@ class PrintMyActorRefActor(context: ActorContext[String]) extends AbstractBehavi
   override def onSignal: PartialFunction[Signal, Behavior[String]] = {
     case PostStop =>
       println("second stop")
+      this
+  }
+}
+
+object SupervisedActor {
+  def apply(): Behavior[String] =
+    Behaviors.setup(context => new SupervisedActor(context))
+}
+
+class SupervisedActor(context: ActorContext[String]) extends AbstractBehavior[String](context) {
+  override def onMessage(msg: String): Behavior[String] =
+    msg match {
+      case "fails" =>
+        println("fails!")
+        throw new Exception("throw exception!")
+    }
+
+  override def onSignal: PartialFunction[Signal, Behavior[String]] = {
+    case PreRestart =>
+      println("restart!")
+      this
+    case PostStop =>
+      println("stop!")
       this
   }
 }
