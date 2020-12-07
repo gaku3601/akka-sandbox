@@ -1,10 +1,9 @@
+package tutorial1
+
 import akka.actor.typed._
 import akka.actor.typed.scaladsl.{AbstractBehavior, ActorContext, Behaviors}
 
 object HelloWorld extends App {
-  val testSystem = ActorSystem(Main(), "testSystem")
-  testSystem ! "start"
-  testSystem ! "stop"
 }
 
 object Main {
